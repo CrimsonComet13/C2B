@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelo C2B - Consumer to Business</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            --secondary-gradient: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            --accent-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --text-primary: #1a1a2e;
+            --text-secondary: #16213e;
+            --text-muted: #6b7280;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --shadow-light: 0 8px 32px rgba(31, 38, 135, 0.37);
+            --shadow-medium: 0 15px 35px rgba(31, 38, 135, 0.2);
+            --shadow-heavy: 0 25px 50px rgba(31, 38, 135, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .shape {
+            position: absolute;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+
+        .shape:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            top: 70%;
+            right: 10%;
+            animation-delay: -5s;
+        }
+
+        .shape:nth-child(3) {
+            width: 60px;
+            height: 60px;
+            top: 30%;
+            right: 20%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-30px) rotate(120deg); }
+            66% { transform: translateY(20px) rotate(240deg); }
+        }
+
+        .slide {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 50px;
+            max-width: 1400px;
+            width: 100%;
+            box-shadow: var(--shadow-heavy);
+            animation: slideIn 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(60px) scale(0.95);
+                filter: blur(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 6px;
+            background: var(--accent-gradient);
+            border-radius: 3px;
+            box-shadow: 0 4px 15px rgba(250, 112, 154, 0.4);
+        }
+
+        .title {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--text-primary) 0%, #4f46e5 50%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 35px;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--secondary-gradient);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .section:hover::before {
+            transform: scaleX(1);
+        }
+
+        .section:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-medium);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .section h3 {
+            color: var(--text-primary);
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: -0.01em;
+        }
+
+        .section h3 .emoji {
+            font-size: 1.8rem;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .section p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 20px;
+            font-weight: 400;
+            font-size: 1.05rem;
+        }
+
+        .example-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .example-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--success-color);
+            border-radius: 2px;
+        }
+
+        .example-box strong {
+            color: var(--success-color);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .example-box ul {
+            margin-top: 15px;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .example-box li {
+            margin: 10px 0;
+            padding-left: 25px;
+            position: relative;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .example-box li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--success-color);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .advantages-risks {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .advantages, .risks {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .advantages::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--success-color), #34d399);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .risks::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--danger-color), #f87171);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .advantages:hover, .risks:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-light);
+        }
+
+        .advantages h4, .risks h4 {
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .advantages h4 {
+            color: var(--success-color);
+        }
+
+        .risks h4 {
+            color: var(--danger-color);
+        }
+
+        .advantages ul, .risks ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .advantages li, .risks li {
+            margin: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: var(--text-secondary);
+            font-weight: 500;
+            line-height: 1.6;
+        }
+
+        .advantages li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--success-color);
+            font-weight: bold;
+            font-size: 1.2rem;
+            width: 20px;
+            height: 20px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .risks li::before {
+            content: '⚠';
+            position: absolute;
+            left: 0;
+            color: var(--danger-color);
+            font-size: 1.1rem;
+            width: 20px;
+            height: 20px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .platforms {
+            text-align: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 25px;
+            position: relative;
+        }
+
+        .platforms h4 {
+            color: var(--text-primary);
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+        }
+
+        .platform-logos {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .platform-logo {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 18px 28px;
+            font-weight: 600;
+            color: var(--text-primary);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .platform-logo::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .platform-logo:hover::before {
+            left: 100%;
+        }
+
+        .platform-logo:hover {
+            background: var(--secondary-gradient);
+            color: white;
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: var(--shadow-light);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .tech-icons {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .tech-icon {
+            width: 90px;
+            height: 90px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            font-size: 2.2rem;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tech-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: var(--accent-gradient);
+            border-radius: 50%;
+            transition: all 0.4s ease;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+        }
+
+        .tech-icon:hover::before {
+            width: 100%;
+            height: 100%;
+        }
+
+        .tech-icon:hover {
+            transform: scale(1.15) rotate(10deg);
+            box-shadow: var(--shadow-medium);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .tech-icon:nth-child(odd):hover {
+            transform: scale(1.15) rotate(-10deg);
+        }
+
+        @media (max-width: 1024px) {
+            .slide {
+                padding: 40px;
+            }
+            
+            .content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .advantages-risks {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+            
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            .tech-icons {
+                gap: 20px;
+            }
+            
+            .tech-icon {
+                width: 80px;
+                height: 80px;
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .slide {
+                padding: 30px;
+                margin: 10px;
+            }
+            
+            .platform-logos {
+                gap: 15px;
+            }
+            
+            .platform-logo {
+                padding: 15px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .section {
+                padding: 25px;
+            }
+            
+            .tech-icons {
+                gap: 15px;
+            }
+            
+            .tech-icon {
+                width: 70px;
+                height: 70px;
+                font-size: 1.8rem;
+            }
+        }
+
+        /* Animaciones de entrada escalonadas */
+        .section {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .section:nth-child(1) { animation-delay: 0.2s; }
+        .section:nth-child(2) { animation-delay: 0.4s; }
+
+        .advantages {
+            opacity: 0;
+            transform: translateX(-30px);
+            animation: fadeInLeft 0.8s ease forwards;
+            animation-delay: 0.6s;
+        }
+
+        .risks {
+            opacity: 0;
+            transform: translateX(30px);
+            animation: fadeInRight 0.8s ease forwards;
+            animation-delay: 0.8s;
+        }
+
+        .tech-icon {
+            opacity: 0;
+            transform: scale(0.8);
+            animation: fadeInScale 0.6s ease forwards;
+        }
+
+        .tech-icon:nth-child(1) { animation-delay: 1.0s; }
+        .tech-icon:nth-child(2) { animation-delay: 1.1s; }
+        .tech-icon:nth-child(3) { animation-delay: 1.2s; }
+        .tech-icon:nth-child(4) { animation-delay: 1.3s; }
+        .tech-icon:nth-child(5) { animation-delay: 1.4s; }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInLeft {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeInRight {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeInScale {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Efectos de partículas */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particle-float 3s infinite ease-in-out;
+        }
+
+        @keyframes particle-float {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="slide">
+        <div class="header">
+            <h1 class="title">C2B - Consumer to Business</h1>
+            <p class="subtitle">Modelo de Negocio Digital Revolucionario</p>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <h3><span class="emoji">🎯</span>Descripción del Modelo</h3>
+                <p>El modelo C2B permite que los <strong>consumidores ofrezcan productos o servicios a empresas</strong>. Este enfoque revoluciona la relación tradicional comercial, empoderando a individuos para monetizar sus habilidades y creatividad de manera directa y eficiente.</p>
+                
+                <div class="example-box">
+                    <strong>Ejemplos Innovadores:</strong>
+                    <ul>
+                        <li>Creadores de contenido vendiendo fotografías premium</li>
+                        <li>Influencers promocionando marcas con autenticidad</li>
+                        <li>Freelancers ofreciendo servicios especializados</li>
+                        <li>Artistas digitales creando assets únicos</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3><span class="emoji">💡</span>Ecosistema Digital</h3>
+                <p>Las plataformas digitales han facilitado enormemente este modelo de negocio, creando un ecosistema donde la creatividad y el talento individual pueden prosperar:</p>
+                
+                <div class="platforms">
+                    <h4>🚀 Plataformas Líderes</h4>
+                    <div class="platform-logos">
+                        <div class="platform-logo">📸 Shutterstock</div>
+                        <div class="platform-logo">💼 Upwork</div>
+                        <div class="platform-logo">🎨 Fiverr</div>
+                        <div class="platform-logo">📱 99designs</div>
+                    </div>
+                </div>
+                
+                <p style="margin-top: 20px;"><strong>Funcionamiento Inteligente:</strong> Fotógrafos, diseñadores y freelancers pueden vender sus servicios directamente a empresas que buscan contenido auténtico o trabajo especializado, creando una economía colaborativa eficiente.</p>
+            </div>
+        </div>
+
+        <div class="advantages-risks">
+            <div class="advantages">
+                <h4>✅ Ventajas Estratégicas</h4>
+                <ul>
+                    <li>Control total del consumidor sobre su oferta de valor</li>
+                    <li>Acceso empresarial a talento y productos únicos</li>
+                    <li>Fomento activo de la innovación individual</li>
+                    <li>Flexibilidad completa en horarios y precios</li>
+                    <li>Democratización del mercado laboral global</li>
+                    <li>Escalabilidad sin límites geográficos</li>
+                </ul>
+            </div>
+
+            <div class="risks">
+                <h4>⚠️ Desafíos a Considerar</h4>
+                <ul>
+                    <li>Variabilidad en la calidad de servicios ofrecidos</li>
+                    <li>Complejidad en el establecimiento de confianza</li>
+                    <li>Competencia intensa entre proveedores</li>
+                    <li>Inestabilidad potencial en los ingresos</li>
+                    <li>Necesidad de diferenciación constante</li>
+                </ul>
+            </div>
+        </div>
+
+    <script>
+        // Sistema de animaciones avanzado
+        document.addEventListener('DOMContentLoaded', function() {
+            // Crear partículas flotantes
+            function createParticles() {
+                const slide = document.querySelector('.slide');
+                for (let i = 0; i < 15; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.top = Math.random() * 100 + '%';
+                    particle.style.animationDelay = Math.random() * 3 + 's';
+                    particle.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    slide.appendChild(particle);
+                }
+            }
+
+            createParticles();
+
+            // Efectos hover mejorados para iconos tecnológicos
+            const techIcons = document.querySelectorAll('.tech-icon');
+            techIcons.forEach((icon, index) => {
+                icon.addEventListener('mouseenter', function() {
+                    this.style.boxShadow = '0 20px 40px rgba(102, 126, 234, 0.4)';
+                    
+                    // Efecto ripple
+                    const ripple = document.createElement('div');
+                    ripple.style.position = 'absolute';
+                    ripple.style.borderRadius = '50%';
+                    ripple.style.background = 'rgba(255, 255, 255, 0.6)';
+                    ripple.style.transform = 'scale(0)';
+                    ripple.style.animation = 'ripple 0.6s linear';
+                    ripple.style.left = '50%';
+                    ripple.style.top = '50%';
+                    ripple.style.width = '20px';
+                    ripple.style.height = '20px';
+                    ripple.style.marginLeft = '-10px';
+                    ripple.style.marginTop = '-10px';
+                    
+                    this.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+                
+                icon.addEventListener('mouseleave', function() {
+                    this.style.boxShadow = 'none';
+                });
+            });
+
+            // Animación de escritura para el título
+            const title = document.querySelector('.title');
+            const titleText = title.textContent;
+            title.textContent = '';
+            
+            let i = 0;
+            const typeWriter = () => {
+                if (i < titleText.length) {
+                    title.textContent += titleText.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, 100);
+                }
+            };
+            
+            setTimeout(typeWriter, 500);
+
+            // Efecto parallax suave para las formas flotantes
+            document.addEventListener('mousemove', (e) => {
+                const shapes = document.querySelectorAll('.shape');
+                const x = e.clientX / window.innerWidth;
+                const y = e.clientY / window.innerHeight;
+                
+                shapes.forEach((shape, index) => {
+                    const speed = (index + 1) * 0.5;
+                    const xPos = (x - 0.5) * speed * 20;
+                    const yPos = (y - 0.5) * speed * 20;
+                    shape.style.transform = `translate(${xPos}px, ${yPos}px)`;
+                });
+            });
+
+            // Animación de contador para elementos de lista
+            const observerOptions = {
+                threshold: 0.5,
+                rootMargin: '0px 0px -100px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observar elementos para animaciones de entrada
+            document.querySelectorAll('.section, .advantages, .risks').forEach(el => {
+                observer.observe(el);
+            });
+        });
+
+        // Agregar estilos de animación ripple dinámicamente
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
+
